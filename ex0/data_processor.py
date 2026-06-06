@@ -12,7 +12,7 @@ class DataProcessor(ABC):
     @abstractmethod
     def validate(self, data: Any) -> bool:
         pass
-        
+
     @abstractmethod
     def ingest(self, data: Any) -> None:
         pass
@@ -22,7 +22,7 @@ class DataProcessor(ABC):
 
 
 class NumericProcessor(DataProcessor):
-    def validate(self, data: Any) -> None:
+    def validate(self, data: Any) -> bool:
         if isinstance(data, (int, float)):
             return True
         if isinstance(data, list) and data:
@@ -40,7 +40,7 @@ class NumericProcessor(DataProcessor):
 
 
 class TextProcessor(DataProcessor):
-    def validate(self, data: Any) -> None:
+    def validate(self, data: Any) -> bool:
         if isinstance(data, str):
             return True
         if isinstance(data, list) and data:
@@ -58,26 +58,28 @@ class TextProcessor(DataProcessor):
 
 
 class LogProcessor(DataProcessor):
-    def validate(self, data: Any) -> None:
+    def validate(self, data: Any) -> bool:
         if isinstance(data, dict):
             return all(isinstance(key, str) and isinstance(value, str)
                        for key, value in data.items())
         if isinstance(data, list) and data:
             return all(isinstance(item, dict) and
-                       all (isinstance(key, str) and isinstance(value, str)
+                       all(isinstance(key, str) and isinstance(value, str)
                        for key, value in item.items())
                        for item in data)
         return False
 
-    def ingest(self, data: dict[str, str] | list[dict[str: str]]) -> None:   
+    def ingest(self, data: dict[str, str] | list[dict[str: str]]) -> None:
         if not self.validate(data):
             raise ValueError("Improper log data")
         items = data if isinstance(data, list) else [data]
         for item in items:
-            log_str = f"{item.get('log_level', '')}: {item.get('log_message', '')}"
+            log_str = (
+                    f"{item.get('log_level', '')}: "
+                    f"{item.get('log_message', '')}"
+                    )
             self._storage.append((self._counter, log_str))
             self._counter += 1
-
 
 
 def main() -> None:
@@ -86,8 +88,9 @@ def main() -> None:
     print("\nTesting Numeric Processor...")
     num_processor = NumericProcessor()
     print(f" Trying to validate input '42': {num_processor.validate(42)}")
-    print(f" Trying to validate input 'Hello': {num_processor.validate('Hello')}")
-    
+    print(f" Trying to validate input 'Hello': "
+          f"{num_processor.validate('Hello')}")
+
     print(" Test invalid ingestion of string 'foo' without prior validation:")
     try:
         num_processor.ingest("foo")
@@ -113,10 +116,11 @@ def main() -> None:
     for i in range(1):
         index, value = txt_processor.output()
         print(f" Text value {index}: {value}")
-   
+
     print("\nTesting Log Processor...")
     log_processor = LogProcessor()
-    print(f" Trying to validate input 'Hello': {log_processor.validate('Hello')}")
+    print(f" Trying to validate input 'Hello': "
+          f"{log_processor.validate('Hello')}")
 
     log_data = [
                 {'log_level': 'NOTICE', 'log_message': 'Connection to server'},
