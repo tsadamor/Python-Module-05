@@ -164,7 +164,7 @@ class DataStream:
             for _ in range(nb):
                 if proc.get_remaining_count() == 0:
                     break
-                
+
                 item = proc.output()
                 if item is not None:
                     collected_data.append(item)
