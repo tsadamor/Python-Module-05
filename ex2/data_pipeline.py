@@ -120,10 +120,10 @@ class JSONExportPlugin:
             index = item[0]
             value = item[1]
             element_str = f'"item_{index}": "{value}"'
-        json_items.append(element_str)
+            json_items.append(element_str)
 
-        json_str = ", ".json_items.join()
-        print("JSON Output")
+        json_str = "{" + ",".join(json_items) + "}"
+        print("JSON Output:")
         print(json_str)
 
 
@@ -159,7 +159,6 @@ class DataStream:
                   f"remaining {proc.get_remaining_count()} on processor")
 
     def output_pipeline(self, nb: int, plugin: ExportPlugin) -> None:
-
         for proc in self._processors:
             collected_data: list[tuple[int, str]] = []
             for _ in range(nb):
@@ -170,8 +169,8 @@ class DataStream:
                 if item is not None:
                     collected_data.append(item)
 
-        if collected_data:
-            plugin.process_output(collected_data)
+            if collected_data:
+                plugin.process_output(collected_data)
 
 
 def main() -> None:
@@ -179,6 +178,7 @@ def main() -> None:
 
     print("\nInitialize Data Stream...")
     stream = DataStream()
+    print()
     stream.print_processors_stats()
 
     num_proc = NumericProcessor()
@@ -208,6 +208,7 @@ def main() -> None:
             ]
 
     print(f"\nSend first batch of data on stream: {data}")
+    print()
     stream.process_stream(data)
     stream.print_processors_stats()
 
@@ -215,6 +216,39 @@ def main() -> None:
 
     print("\nSend 3 processed data from each processor to a CSV plugin:")
     stream.output_pipeline(3, csv_plugin)
+    print()
+    stream.print_processors_stats()
+
+    data_2 = [
+            21,
+            ['I love AI', 'LLMs are wonderful', 'Stay healthy'],
+            [
+                {
+                    'log_level': 'ERROR',
+                    'log_message': '500 server crash'
+                },
+                {
+                    'log_level': 'NOTICE',
+                    'log_message': 'Certificate expires in 10 days'
+                }
+            ],
+            [32, 42, 64, 84, 128, 168],
+            'World hello'
+            ]
+
+    print()
+    print(f"Send another batch of data: {data_2}")
+    stream.process_stream(data_2)
+    print()
+    stream.print_processors_stats()
+
+    json_plugin = JSONExportPlugin()
+
+    print()
+    print("Send 5 processed data from each processor to a JSON plugin:")
+    stream.output_pipeline(5, json_plugin)
+    print()
+    stream.print_processors_stats()
 
 
 if __name__ == "__main__":
