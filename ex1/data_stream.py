@@ -39,7 +39,7 @@ class NumericProcessor(DataProcessor):
             return all(isinstance(x, (int, float)) for x in data)
         return False
 
-    def ingest(self, data: int | float | list[int | float]) -> None:
+    def ingest(self, data: int | float | list[int] | list[float]) -> None:
         if not self.validate(data):
             raise ValueError("Improper numeric data")
 
@@ -79,7 +79,7 @@ class LogProcessor(DataProcessor):
                        for item in data)
         return False
 
-    def ingest(self, data: dict[str, str] | list[dict[str: str]]) -> None:
+    def ingest(self, data: dict[str, str] | list[dict[str, str]]) -> None:
         if not self.validate(data):
             raise ValueError("Improper log data")
         items = data if isinstance(data, list) else [data]
@@ -94,7 +94,7 @@ class LogProcessor(DataProcessor):
 
 class DataStream:
     def __init__(self) -> None:
-        self._processors = []
+        self._processors: list[DataProcessor] = []
 
     def register_processor(self, proc: DataProcessor) -> None:
         self._processors.append(proc)
